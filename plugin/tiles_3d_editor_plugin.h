@@ -32,6 +32,7 @@
 #define TILE_MAP_3D_EDITOR_PLUGIN_H
 
 #include "editor/editor_plugin.h"
+#include "tile_map_3d_editor.h"
 #include "tile_set_3d_editor.h"
 
 class Tiles3DEditorPlugin : public EditorPlugin {
@@ -40,10 +41,12 @@ class Tiles3DEditorPlugin : public EditorPlugin {
 private:
 	EditorNode *editor_node;
 
-	Ref<TileSet3D> tile_set;
+	TileMap3D *tilemap;
+	Ref<TileSet3D> tileset;
 
 	TileSet3DEditor *tileset_editor;
 	Button *tileset_editor_button;
+	TileMap3DEditor *tilemap_editor;
 
 public:
 

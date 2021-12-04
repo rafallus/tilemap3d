@@ -246,7 +246,7 @@ public:
 	};
 
 	void set_tile_set(const Ref<TileSet3D> &p_set);
-	Ref<TileSet3D> get_tile_set() const;
+	Ref<TileSet3D> get_tileset() const;
 	void set_cell_scale(float p_scale);
 	float get_cell_scale() const;
 	void set_octant_size(const Vector3 &p_size);

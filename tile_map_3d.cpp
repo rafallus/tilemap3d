@@ -354,7 +354,7 @@ void TileMap3D::set_tile_set(const Ref<TileSet3D> &p_set) {
 	_mark_octants_as_dirty();
 }
 
-Ref<TileSet3D> TileMap3D::get_tile_set() const {
+Ref<TileSet3D> TileMap3D::get_tileset() const {
 	return tile_set;
 }
 
@@ -726,7 +726,7 @@ void TileMap3D::_notification(int p_what) {
 
 void TileMap3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tile_set", "tile_set"), &TileMap3D::set_tile_set);
-	ClassDB::bind_method(D_METHOD("get_tile_set"), &TileMap3D::get_tile_set);
+	ClassDB::bind_method(D_METHOD("get_tileset"), &TileMap3D::get_tileset);
 	ClassDB::bind_method(D_METHOD("set_cell_scale", "scale"), &TileMap3D::set_cell_scale);
 	ClassDB::bind_method(D_METHOD("get_cell_scale"), &TileMap3D::get_cell_scale);
 	ClassDB::bind_method(D_METHOD("set_octant_size", "size"), &TileMap3D::set_octant_size);
@@ -738,7 +738,7 @@ void TileMap3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_octant_center_z", "center"), &TileMap3D::set_octant_center_z);
 	ClassDB::bind_method(D_METHOD("is_octant_centered_z"), &TileMap3D::is_octant_centered_z);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "tile_set", PROPERTY_HINT_RESOURCE_TYPE, "TileSet3D"), "set_tile_set", "get_tile_set");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "tile_set", PROPERTY_HINT_RESOURCE_TYPE, "TileSet3D"), "set_tile_set", "get_tileset");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "cell_scale"), "set_cell_scale", "get_cell_scale");
 	ADD_GROUP("Octant", "octant_");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "octant_size"), "set_octant_size", "get_octant_size");

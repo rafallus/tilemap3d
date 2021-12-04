@@ -31,26 +31,60 @@
 #include "tiles_3d_editor_plugin.h"
 
 void Tiles3DEditorPlugin::edit(Object *p_object) {
-    tile_set = Ref<TileSet3D>(p_object);
-    tileset_editor->edit(tile_set);
+    if (p_object) {
+        if (p_object->is_class("TileMap3D")) {
+            tilemap = Object::cast_to<TileMap3D>(p_object);
+            tilemap_editor->edit(tilemap);
+            tileset = tilemap->get_tileset();
+            tileset_editor->edit(tileset);
+        } else if (p_object->is_class("TileSet3D")) {
+            tileset = Ref<TileSet3D>(p_object);
+            tileset_editor->edit(tileset);
+            if (tilemap && (tilemap->get_tileset() != tileset || !tilemap->is_inside_tree())) {
+                tilemap = nullptr;
+                tilemap_editor->edit(tilemap);
+            }
+        }
+    }
 }
 
 bool Tiles3DEditorPlugin::handles(Object *p_object) const {
-    return p_object->is_class("TileSet3D");
+    return p_object->is_class("TileMap3D") || p_object->is_class("TileSet3D");
 }
 
 void Tiles3DEditorPlugin::make_visible(bool p_visible) {
     if (p_visible) {
-        tileset_editor_button->show();
-        editor_node->make_bottom_panel_item_visible(tileset_editor);
+        tilemap_editor->set_visible(tilemap);
+        tileset_editor->set_visible(tileset.is_valid());
+        if (!tilemap) {
+            editor_node->make_bottom_panel_item_visible(tileset_editor);
+        }
     } else {
+        tilemap_editor->hide();
         tileset_editor_button->hide();
-        editor_node->hide_bottom_panel();
+        // if (tileset_editor->is_visible()) {
+        //     tileset_editor_button->hide();
+        //     editor_node->hide_bottom_panel();
+        // }
     }
 }
 
 Tiles3DEditorPlugin::Tiles3DEditorPlugin(EditorNode *p_node) {
     editor_node = p_node;
+
+    EDITOR_DEF("editors/tile_map_3d/editor_side", 1);
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::INT, "editors/tile_map_3d/editor_side", PROPERTY_HINT_ENUM, "Left,Right"));
+
+    tilemap_editor = memnew(TileMap3DEditor());
+	switch ((int)EditorSettings::get_singleton()->get("editors/tile_map_3d/editor_side")) {
+		case 0: { // Left.
+			add_control_to_container(CONTAINER_SPATIAL_EDITOR_SIDE_LEFT, tilemap_editor);
+		} break;
+		case 1: { // Right.
+			add_control_to_container(CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT, tilemap_editor);
+		} break;
+	}
+	tilemap_editor->hide();
 
     tileset_editor = memnew(TileSet3DEditor);
     tileset_editor->set_h_size_flags(Control::SIZE_EXPAND_FILL);

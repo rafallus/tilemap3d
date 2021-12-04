@@ -200,7 +200,7 @@ bool TileSet3DCollectionEditor::_handle_tile_source_meshinstance(const MeshInsta
 	r_data->set_transparency(p_mi->get_transparency());
 	r_data->set_cast_shadow_mode(p_mi->get_cast_shadows_setting());
 	r_data->set_lod_bias(p_mi->get_lod_bias());
-	r_data->set_ignore_occlusion_culling(p_mi->is_ignoring_occlusion_culling());
+	// r_data->set_ignore_occlusion_culling(p_mi->is_ignoring_occlusion_culling());
 	r_data->set_gi_mode(p_mi->get_gi_mode());
 	r_data->set_gi_lightmap_scale(p_mi->get_lightmap_scale());
 	r_data->set_visibility_range_begin(p_mi->get_visibility_range_begin());

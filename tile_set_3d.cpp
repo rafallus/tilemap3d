@@ -305,14 +305,14 @@ void TileData3DMesh::move_physics_data(int p_from_index, int p_to_pos) {
 	ERR_FAIL_INDEX(p_from_index, physics_data.size());
 	ERR_FAIL_INDEX(p_to_pos, physics_data.size() + 1);
 	physics_data.insert(p_to_pos, physics_data[p_from_index]);
-	physics_data.remove(p_to_pos < p_from_index ? p_from_index + 1 : p_from_index);
+	physics_data.remove_at(p_to_pos < p_from_index ? p_from_index + 1 : p_from_index);
 	notify_property_list_changed();
 	_queue_changed();
 }
 
 void TileData3DMesh::remove_physics_data(int p_index) {
 	ERR_FAIL_INDEX(p_index, physics_data.size());
-	physics_data.remove(p_index);
+	physics_data.remove_at(p_index);
 	notify_property_list_changed();
 	_queue_changed();
 }
@@ -1332,7 +1332,7 @@ void TileSet3D::remove_collection(int p_id) {
 			_cached_collection.unref();
 		}
 		collections.erase(p_id);
-		collections_ids.remove(index);
+		collections_ids.remove_at(index);
 	}
 
 	_queue_changed();

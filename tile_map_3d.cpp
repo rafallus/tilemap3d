@@ -430,14 +430,14 @@ void TileMap3D::move_layer(int p_layer, int p_to_pos) {
 
 	TileMapLayer tl = layers[p_layer];
 	layers.insert(p_to_pos, tl);
-	layers.remove(p_to_pos < p_layer ? p_layer + 1 : p_layer);
+	layers.remove_at(p_to_pos < p_layer ? p_layer + 1 : p_layer);
 	notify_property_list_changed();
 }
 
 void TileMap3D::remove_layer(int p_layer) {
 	ERR_FAIL_INDEX(p_layer, layers.size());
 
-	layers.remove(p_layer);
+	layers.remove_at(p_layer);
 	notify_property_list_changed();
 
 	_queue_octants_dirty();

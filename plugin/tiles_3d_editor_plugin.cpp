@@ -55,17 +55,17 @@ bool Tiles3DEditorPlugin::handles(Object *p_object) const {
 void Tiles3DEditorPlugin::make_visible(bool p_visible) {
     if (p_visible) {
         tilemap_editor->set_visible(tilemap);
-        tileset_editor->set_visible(tileset.is_valid());
+        tileset_editor_button->set_visible(tileset.is_valid());
         if (!tilemap) {
             editor_node->make_bottom_panel_item_visible(tileset_editor);
         }
     } else {
         tilemap_editor->hide();
+        if (tileset_editor->is_visible()) {
+            tileset_editor->hide();
+            editor_node->hide_bottom_panel();
+        }
         tileset_editor_button->hide();
-        // if (tileset_editor->is_visible()) {
-        //     tileset_editor_button->hide();
-        //     editor_node->hide_bottom_panel();
-        // }
     }
 }
 

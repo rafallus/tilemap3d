@@ -48,6 +48,13 @@ private:
 	Button *tileset_editor_button;
 	TileMap3DEditor *tilemap_editor;
 
+// TODO: Keep track of removed nodes to check if tilemap is inside tree
+// notification
+// case NOTIFICATION_ENTER_TREE: {
+// get_tree()->connect("node_removed", callable_mp(this, &GridMapEditor::_node_removed));
+// case NOTIFICATION_EXIT_TREE: {
+// get_tree()->disconnect("node_removed", callable_mp(this, &GridMapEditor::_node_removed));
+
 public:
 
 	virtual void edit(Object *p_object) override;

@@ -1,0 +1,38 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Godot Source in Relese Debug",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "args": [
+                "platform=linuxbsd",
+                "target=release_debug",
+                "-j6",
+                "custom_modules=../modules",
+                "dev=no"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../../Source/"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build Godot Source in Debug",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "args": [
+                "platform=linuxbsd",
+                "target=debug",
+                "-j6",
+                "custom_modules=../modules"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../../Source/"
+            },
+            "problemMatcher": "$gcc"
+        }
+    ]
+}

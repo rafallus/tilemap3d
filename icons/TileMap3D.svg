@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333334 4.2333333"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   sodipodi:docname="tile_map_3d.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     units="px"
+     inkscape:zoom="7.9867625"
+     inkscape:cx="42.946062"
+     inkscape:cy="9.140124"
+     inkscape:window-width="1920"
+     inkscape:window-height="1019"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Capa 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-157.80063,-9.3865908)">
+    <path
+       id="path5006"
+       style="fill:#fc7f7f;fill-opacity:1;stroke:none;stroke-width:0.0569982;stroke-linecap:round;stroke-linejoin:round"
+       d="m 159.85649,9.6511741 -0.70331,0.6160419 v 0.465434 l 0.75819,0.66416 0.7033,-0.616106 v -0.465371 z m -1.08797,0.9502769 -0.70331,0.616043 v 0.465434 l 0.75819,0.664159 0.7033,-0.616106 v -0.46537 z m 2.24267,0.05798 -0.70331,0.616043 v 0.465433 l 0.75819,0.664161 0.70331,-0.616108 v -0.46537 z m -1.08797,0.950277 -0.70331,0.616042 v 0.465434 l 0.75819,0.66416 0.70331,-0.616106 v -0.465371 z" />
+  </g>
+</svg>

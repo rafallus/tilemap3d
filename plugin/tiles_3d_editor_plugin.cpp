@@ -68,7 +68,7 @@ void Tiles3DEditorPlugin::make_visible(bool p_visible) {
         }
     } else {
         tilemap_editor->hide();
-        tilemap_editor->set_controls_visibility(false);
+        tilemap_editor->set_3d_controls_visibility(false);
         if (tileset_editor->is_visible()) {
             tileset_editor->hide();
             editor->hide_bottom_panel();

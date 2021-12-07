@@ -145,6 +145,12 @@ Pair<Vector<Vector3>, Vector<Color>> get_grid_lines_cf(const Vector2i &p0, const
 #undef PUSH_POINTS2
 
 void TileMap3DEditor::_draw_grid() {
+    RS::get_singleton()->mesh_clear(grid);
+
+    if (tileset.is_null()) {
+        return;
+    }
+
     Rect2i rect = tilemap->get_used_cells_rect_proj(selected_axis);
     int minsz = 2 * GRID_MIN_SIZE + 1;
     if (rect.size.x < minsz) {
@@ -173,40 +179,57 @@ void TileMap3DEditor::_draw_grid() {
     d.resize(RS::ARRAY_MAX);
     d[RS::ARRAY_VERTEX] = r.first;
     d[RS::ARRAY_COLOR] = r.second;
-    RS::get_singleton()->mesh_clear(grid);
     RS::get_singleton()->mesh_add_surface_from_arrays(grid, RenderingServer::PRIMITIVE_LINES, d);
 	RS::get_singleton()->mesh_surface_set_material(grid, 0, grid_mat->get_rid());
+}
+
+void TileMap3DEditor::_update_tileset() {
+    if (tileset.is_valid()) {
+        tileset->disconnect("changed", callable_mp(this, &TileMap3DEditor::_tileset_changed));
+    }
+
+    tileset = tilemap->get_tileset();
+
+    if (tileset.is_valid()) {
+        tileset->connect("changed", callable_mp(this, &TileMap3DEditor::_tileset_changed));
+    }
+
+    if (tileset.is_null()) {
+        set_3d_controls_visibility(false);
+    }
+
+    _tileset_changed();
+}
+
+void TileMap3DEditor::_tileset_changed() {
+    // update_palette
+    _draw_grid();
 }
 
 void TileMap3DEditor::edit(TileMap3D *p_tilemap) {
     if (tilemap == p_tilemap && tileset == p_tilemap->get_tileset()) {
         if (tilemap && tileset.is_valid()) {
-            set_controls_visibility(true);
+            set_3d_controls_visibility(true);
         }
         return;
     }
 
     tilemap = p_tilemap;
 
-    if (tilemap) {
-        tileset = tilemap->get_tileset();
-    } else {
+    if (!tilemap) {
+        set_process(false);
         if (tileset.is_valid()) {
             tileset.unref();
         }
-    }
-
-    // update_palette
-    if (tileset.is_valid()) {
-        _draw_grid();
-    }
-
-    if (!tilemap || tileset.is_null()) {
-        set_controls_visibility(false);
+        set_3d_controls_visibility(false);
+    } else {
+        set_process(true);
+        _update_tileset();
     }
 }
 
-void TileMap3DEditor::set_controls_visibility(bool p_visible) {
+void TileMap3DEditor::set_3d_controls_visibility(bool p_visible) {
+    set_process(p_visible);
     RS::get_singleton()->instance_set_visible(grid_instance, p_visible);
 }
 
@@ -230,6 +253,21 @@ void TileMap3DEditor::_notification(int p_what) {
             grid_instance = RID();
             grid = RID();
         } break;
+        case NOTIFICATION_PROCESS: {
+			if (!tilemap) {
+				return;
+			}
+
+			Transform3D xf = tilemap->get_global_transform();
+
+			if (xf != grid_xform) {
+				RS::get_singleton()->instance_set_transform(grid_instance, xf);
+				grid_xform = xf;
+			}
+            if (tileset != tilemap->get_tileset()) {
+                _update_tileset();
+            }
+		} break;
     }
 }
 
@@ -245,6 +283,7 @@ TileMap3DEditor::TileMap3DEditor(EditorNode *p_editor) {
 
     selected_axis = Vector3::AXIS_Y;
 }
+
 TileMap3DEditor::~TileMap3DEditor() {
 
 }

@@ -55,15 +55,18 @@ private:
     RID grid;
     RID grid_instance;
     Ref<StandardMaterial3D> grid_mat;
+    Transform3D grid_xform;
 
     void _draw_grid();
+    void _update_tileset();
+    void _tileset_changed();
 
 protected:
 	void _notification(int p_what);
 
 public:
     void edit(TileMap3D *p_tilemap);
-    void set_controls_visibility(bool p_visible);
+    void set_3d_controls_visibility(bool p_visible);
     EditorPlugin::AfterGUIInput forward_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event);
 
     TileMap3DEditor(EditorNode *p_editor);

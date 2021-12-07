@@ -1181,6 +1181,28 @@ TileSet3D::TileShape TileSet3D::get_tile_shape() const {
 	return tile_shape;
 }
 
+void TileSet3D::set_tile_orientation(TileOrientation p_orientation) {
+	if (p_orientation != tile_orientation) {
+		tile_orientation = p_orientation;
+		_queue_changed();
+	}
+}
+
+TileSet3D::TileOrientation TileSet3D::get_tile_orientation() const {
+	return tile_orientation;
+}
+
+void TileSet3D::set_tile_layout(TileLayout p_layout) {
+	if (p_layout != tile_layout) {
+		tile_layout = p_layout;
+		_queue_changed();
+	}
+}
+
+TileSet3D::TileLayout TileSet3D::get_tile_layout() const {
+	return tile_layout;
+}
+
 void TileSet3D::set_cell_size(const Vector3 &p_size) {
 	if (cell_size != p_size) {
 		cell_size = p_size;
@@ -1225,14 +1247,14 @@ bool TileSet3D::is_cell_centered_z() const {
 	return cell_center_z;
 }
 
-void TileSet3D::set_main_axis(MainAxis p_main) {
+void TileSet3D::set_main_axis(Vector3::Axis p_main) {
 	if (axis_main != p_main) {
 		axis_main = p_main;
 		_queue_changed();
 	}
 }
 
-TileSet3D::MainAxis TileSet3D::get_main_axis() const {
+Vector3::Axis TileSet3D::get_main_axis() const {
 	return axis_main;
 }
 
@@ -1610,6 +1632,10 @@ void TileSet3D::_get_property_list(List<PropertyInfo> *p_list) const {
 void TileSet3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tile_shape", "shape"), &TileSet3D::set_tile_shape);
 	ClassDB::bind_method(D_METHOD("get_tile_shape"), &TileSet3D::get_tile_shape);
+	ClassDB::bind_method(D_METHOD("set_tile_orientation", "orientation"), &TileSet3D::set_tile_orientation);
+	ClassDB::bind_method(D_METHOD("get_tile_orientation"), &TileSet3D::get_tile_orientation);
+	ClassDB::bind_method(D_METHOD("set_tile_layout", "layout"), &TileSet3D::set_tile_layout);
+	ClassDB::bind_method(D_METHOD("get_tile_layout"), &TileSet3D::get_tile_layout);
 	ClassDB::bind_method(D_METHOD("set_cell_size", "size"), &TileSet3D::set_cell_size);
 	ClassDB::bind_method(D_METHOD("get_cell_size"), &TileSet3D::get_cell_size);
 	ClassDB::bind_method(D_METHOD("set_cell_center_x", "center"), &TileSet3D::set_cell_center_x);
@@ -1651,7 +1677,10 @@ void TileSet3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_next_alternative_tile_id", "collection_id", "base_id", "initial", "inc"), &TileSet3D::get_next_alternative_tile_id, DEFVAL(-1), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_collection_alternatives_count", "collection_id", "base_id"), &TileSet3D::get_collection_alternatives_count);
 
+	ADD_GROUP("Tile", "tile_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_shape", PROPERTY_HINT_ENUM, "Cuboid,Hexagonal Prism"), "set_tile_shape", "get_tile_shape");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_orientation", PROPERTY_HINT_ENUM, "Flat,Diamond"), "set_tile_orientation", "get_tile_orientation");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_layout", PROPERTY_HINT_ENUM, "Aligned,Rotated"), "set_tile_layout", "get_tile_layout");
 
 	ADD_GROUP("Cell", "cell_");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "cell_size"), "set_cell_size", "get_cell_size");
@@ -1669,10 +1698,10 @@ void TileSet3D::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(TILE_SHAPE_CUBOID);
 	BIND_ENUM_CONSTANT(TILE_SHAPE_HEXAGONAL_PRISM);
-
-	BIND_ENUM_CONSTANT(MAIN_AXIS_X);
-	BIND_ENUM_CONSTANT(MAIN_AXIS_Y);
-	BIND_ENUM_CONSTANT(MAIN_AXIS_Z);
+	BIND_ENUM_CONSTANT(TILE_ORIENTATION_FLAT);
+	BIND_ENUM_CONSTANT(TILE_ORIENTATION_DIAMOND);
+	BIND_ENUM_CONSTANT(TILE_LAYOUT_ALIGNED);
+	BIND_ENUM_CONSTANT(TILE_LAYOUT_ROTATED);
 }
 
 TileSet3D::TileSet3D() {

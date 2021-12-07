@@ -31,14 +31,43 @@
 #ifndef TILE_MAP_3D_EDITOR_H
 #define TILE_MAP_3D_EDITOR_H
 
+// #include "editor/editor_plugin.h"
+#include "editor/editor_node.h"
 #include "scene/gui/box_container.h"
 #include "tile_map_3d.h"
 
 class TileMap3DEditor : public VBoxContainer {
 	GDCLASS(TileMap3DEditor, VBoxContainer);
 
+private:
+    static const int GRID_MIN_SIZE = 18;
+    static const int GRID_MARGIN = 8;
+
+    TileMap3D *tilemap;
+    Ref<TileSet3D> tileset;
+
+    EditorNode *editor;
+    UndoRedo *undo_redo = EditorNode::get_undo_redo();
+
+    Vector3::Axis selected_axis;
+    int floor_level = 0;
+
+    RID grid;
+    RID grid_instance;
+    Ref<StandardMaterial3D> grid_mat;
+
+    void _draw_grid();
+
+protected:
+	void _notification(int p_what);
+
 public:
     void edit(TileMap3D *p_tilemap);
+    void set_controls_visibility(bool p_visible);
+    EditorPlugin::AfterGUIInput forward_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event);
+
+    TileMap3DEditor(EditorNode *p_editor);
+    ~TileMap3DEditor();
 };
 
 #endif // TILE_MAP_3D_EDITOR_H

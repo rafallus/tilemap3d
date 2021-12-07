@@ -342,22 +342,28 @@ public:
         TILE_SHAPE_HEXAGONAL_PRISM
     };
 
-    enum MainAxis {
-        MAIN_AXIS_X,
-        MAIN_AXIS_Y,
-        MAIN_AXIS_Z
+    enum TileOrientation {
+        TILE_ORIENTATION_FLAT,
+        TILE_ORIENTATION_DIAMOND
+    };
+
+    enum TileLayout {
+        TILE_LAYOUT_ALIGNED,
+        TILE_LAYOUT_ROTATED
     };
 
 private:
 
     TileShape tile_shape = TILE_SHAPE_CUBOID;
+    TileOrientation tile_orientation = TILE_ORIENTATION_FLAT;
+    TileLayout tile_layout = TILE_LAYOUT_ALIGNED;
 
     Vector3 cell_size = Vector3(1, 1, 1);
     bool cell_center_x = true;
     bool cell_center_y = true;
     bool cell_center_z = true;
 
-    MainAxis axis_main = MAIN_AXIS_Y;
+    Vector3::Axis axis_main = Vector3::AXIS_Y;
     bool axis_invert_x = false;
     bool axis_invert_y = false;
     bool axis_invert_z = false;
@@ -388,6 +394,10 @@ public:
 
     void set_tile_shape(TileShape p_shape);
     TileShape get_tile_shape() const;
+    void set_tile_orientation(TileOrientation p_orientation);
+    TileOrientation get_tile_orientation() const;
+    void set_tile_layout(TileLayout p_layout);
+    TileLayout get_tile_layout() const;
     void set_cell_size(const Vector3 &p_size);
     Vector3 get_cell_size() const;
     void set_cell_center_x(bool p_center);
@@ -397,8 +407,8 @@ public:
     void set_cell_center_z(bool p_center);
     bool is_cell_centered_z() const;
 
-    void set_main_axis(MainAxis p_main);
-    MainAxis get_main_axis() const;
+    void set_main_axis(Vector3::Axis p_main);
+    Vector3::Axis get_main_axis() const;
     void set_axis_invert_x(bool p_invert);
     bool is_axis_inverted_x() const;
     void set_axis_invert_y(bool p_invert);
@@ -439,6 +449,7 @@ public:
 VARIANT_ENUM_CAST(TileData3DMesh::LightType)
 VARIANT_ENUM_CAST(TileSet3DCollection::CollectionType);
 VARIANT_ENUM_CAST(TileSet3D::TileShape);
-VARIANT_ENUM_CAST(TileSet3D::MainAxis);
+VARIANT_ENUM_CAST(TileSet3D::TileOrientation);
+VARIANT_ENUM_CAST(TileSet3D::TileLayout);
 
 #endif // TILE_SET_3D_H

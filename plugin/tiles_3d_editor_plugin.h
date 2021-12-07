@@ -31,7 +31,6 @@
 #ifndef TILE_MAP_3D_EDITOR_PLUGIN_H
 #define TILE_MAP_3D_EDITOR_PLUGIN_H
 
-#include "editor/editor_plugin.h"
 #include "tile_map_3d_editor.h"
 #include "tile_set_3d_editor.h"
 
@@ -39,7 +38,7 @@ class Tiles3DEditorPlugin : public EditorPlugin {
 	GDCLASS(Tiles3DEditorPlugin, EditorPlugin);
 
 private:
-	EditorNode *editor_node;
+	EditorNode *editor;
 
 	TileMap3D *tilemap;
 	Ref<TileSet3D> tileset;
@@ -48,18 +47,17 @@ private:
 	Button *tileset_editor_button;
 	TileMap3DEditor *tilemap_editor;
 
-// TODO: Keep track of removed nodes to check if tilemap is inside tree
-// notification
-// case NOTIFICATION_ENTER_TREE: {
-// get_tree()->connect("node_removed", callable_mp(this, &GridMapEditor::_node_removed));
-// case NOTIFICATION_EXIT_TREE: {
-// get_tree()->disconnect("node_removed", callable_mp(this, &GridMapEditor::_node_removed));
+	void _node_removed(Node *p_node);
+
+protected:
+	void _notification(int p_what);
 
 public:
 
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;
 	virtual void make_visible(bool p_visible) override;
+	virtual EditorPlugin::AfterGUIInput forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) override;
 
 	Tiles3DEditorPlugin(EditorNode *p_node);
 	~Tiles3DEditorPlugin();

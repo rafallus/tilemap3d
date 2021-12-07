@@ -247,7 +247,7 @@ bool TileMap3D::_octant_update(Octant *p_oct) {
 		Ref<TileData3DMesh> data = tile_set->get_collection_tile(mt.tile.collection_id, mt.tile.tile_id, mt.tile.alternative_id);
 		ERR_CONTINUE(data.is_null());
 
-		Vector3 origin = _cell_to_world(cell);
+		Vector3 origin = cell_to_local(cell);
 		Transform3D transform = Transform3D(mt.rotation, origin);
 		transform.basis.scale(Vector3(cell_scale, cell_scale, cell_scale));
 		if (data->get_mesh().is_valid()) {
@@ -315,6 +315,11 @@ void TileMap3D::_mark_octants_as_dirty() {
 	_queue_octants_dirty();
 }
 
+void TileMap3D::_tileset_changed() {
+	_mark_octants_as_dirty();
+	_update_cell_vectors();
+}
+
 TileMap3D::OctantKey TileMap3D::_cell_to_octant(const MapCell &p_cell) const {
 	return OctantKey(
 		p_cell.x / float(octant_size.x) + int(octant_center_x) * 0.5,
@@ -323,13 +328,110 @@ TileMap3D::OctantKey TileMap3D::_cell_to_octant(const MapCell &p_cell) const {
 	);
 }
 
-Vector3 TileMap3D::_cell_to_world(const MapCell &p_cell) const {
+void TileMap3D::_update_cell_vectors() {
+	if (tile_set.is_null()) {
+		cell_basis = Basis(Vector3(), Vector3(), Vector3());
+		_cell_offset = Vector3();
+		return;
+	}
+
+	int axis0 = tile_set->get_main_axis();
+	int axis1 = (axis0 + 1) % 3;
+	int axis2 = (axis0 + 2) % 3;
+	int inv[3] = {tile_set->is_axis_inverted_x() ? -1 : 1, tile_set->is_axis_inverted_y() ? -1 : 1, tile_set->is_axis_inverted_z() ? -1 : 1};
+	_cell_offset = Vector3(tile_set->is_cell_centered_x () ? 0.5 : 0.0, tile_set->is_cell_centered_y() ? 0.5 : 0.0, tile_set->is_cell_centered_z() ? 0.5 : 0.0);
+
+	Vector3 v = Vector3();
+	v[axis0] = inv[axis0];
+	cell_basis[axis0] = v;
+	if (tile_set->get_tile_shape() == TileSet3D::TILE_SHAPE_CUBOID) {
+		if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_FLAT) {
+			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+				v = Vector3();
+				v[axis1] = inv[axis1];
+				cell_basis[axis1] = v;
+				v = Vector3();
+				v[axis2] = inv[axis2];
+				cell_basis[axis2] = v;
+			} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_FLAT, TILE_LAYOUT_ROTATED
+				v = Vector3();
+				v[axis1] = -inv[axis2];
+				cell_basis[axis1] = v;
+				v = Vector3();
+				v[axis2] = inv[axis1];
+				cell_basis[axis2] = v;
+			}
+		} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_DIAMOND
+			_cell_offset[axis1] *= Math_SQRT2;
+			_cell_offset[axis2] = 0.0;
+			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+				v = Vector3();
+				float f = inv[axis1] * Math_SQRT12;
+				v[axis1] = f;
+				v[axis2] = -f;
+				cell_basis[axis1] = v;
+				v = Vector3();
+				f = inv[axis2] * Math_SQRT12;
+				v[axis1] = f;
+				v[axis2] = f;
+				cell_basis[axis2] = v;
+			} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_DIAMOND, TILE_LAYOUT_ROTATED
+				v = Vector3();
+				float f = inv[axis1] * Math_SQRT12;
+				v[axis1] = f;
+				v[axis2] = f;
+				cell_basis[axis1] = v;
+				v = Vector3();
+				f = inv[axis2] * Math_SQRT12;
+				v[axis1] = -f;
+				v[axis2] = f;
+				cell_basis[axis2] = v;
+			}
+		}
+	} else { // TILE_SHAPE_HEXAGONAL_PRISM
+		if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_FLAT) {
+			_cell_offset[axis1] *= Math_SQRT3;
+			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+				v = Vector3();
+				v[axis1] = inv[axis1] * Math_SQRT3;
+				cell_basis[axis1] = v;
+				v = Vector3();
+				v[axis1] = -inv[axis2] * 0.5 * Math_SQRT3;
+				v[axis2] = inv[axis2] * 1.5;
+				cell_basis[axis2] = v;
+			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_FLAT, TILE_LAYOUT_ROTATED
+				v = Vector3();
+				v[axis1] = 0.5 * Math_SQRT3;
+				v[axis2] = -1.5;
+				cell_basis[axis1] = v * inv[axis1];
+				v[axis2] *= -1.0;
+				cell_basis[axis2] = v * inv[axis2];
+			}
+		} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_DIAMOND
+			_cell_offset[axis2] *= Math_SQRT3;
+			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+				v = Vector3();
+				v[axis1] = inv[axis1] * 1.5;
+				v[axis2] = -inv[axis1] * 0.5 * Math_SQRT3;
+				cell_basis[axis1] = v;
+				v = Vector3();
+				v[axis2] = inv[axis2] * Math_SQRT3;
+				cell_basis[axis2] = v;
+			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_DIAMOND, TILE_LAYOUT_ROTATED
+				v = Vector3();
+				v[axis1] = 1.5;
+				v[axis2] = 0.5 * Math_SQRT3;
+				cell_basis[axis1] = v * inv[axis1];
+				v[axis1] *= -1.0;
+				cell_basis[axis2] = v * inv[axis2];
+			}
+		}
+	}
 	Vector3 cell_size = tile_set->get_cell_size();
-	return Vector3(
-		cell_size.x * (p_cell.x + 0.5 * int(tile_set->is_cell_centered_x())),
-		cell_size.y * (p_cell.y + 0.5 * int(tile_set->is_cell_centered_y())),
-		cell_size.z * (p_cell.z + 0.5 * int(tile_set->is_cell_centered_z()))
-	);
+	_cell_offset *= cell_size;
+	for (int i = 0; i < 3; i++) {
+		cell_basis[i] *= cell_size;
+	}
 }
 
 void TileMap3D::_clear_layers() {
@@ -343,15 +445,16 @@ void TileMap3D::set_tile_set(const Ref<TileSet3D> &p_set) {
         return;
     }
     if (tile_set.is_valid()) {
-        tile_set->disconnect("changed", callable_mp(this, &TileMap3D::_queue_octants_dirty));
+        tile_set->disconnect("changed", callable_mp(this, &TileMap3D::_tileset_changed));
     }
 
     tile_set = p_set;
     if (tile_set.is_valid()) {
-        tile_set->connect("changed", callable_mp(this, &TileMap3D::_queue_octants_dirty));
+        tile_set->connect("changed", callable_mp(this, &TileMap3D::_tileset_changed));
     }
 
 	_mark_octants_as_dirty();
+	_update_cell_vectors();
 }
 
 Ref<TileSet3D> TileMap3D::get_tileset() const {
@@ -681,6 +784,55 @@ bool TileMap3D::is_cell_rotation_orthogonal(int p_layer, const Vector3i &p_posit
 	ERR_FAIL_NULL_V_MSG(E, false, "No cell found with the given coordinates.");
 
 	return E->get().ortho_rot_idx != MapTile::NON_ORTHOGONAL_ROT;
+}
+
+TypedArray<Vector3i> TileMap3D::get_used_cells(int p_layer) const {
+	ERR_FAIL_INDEX_V(p_layer, layers.size(), TypedArray<Vector3i>());
+	TypedArray<Vector3i> used;
+	TileMapLayer layer = layers[p_layer];
+	used.resize(layer.tile_map.size());
+	int idx = 0;
+	for (KeyValue<MapCell, MapTile> &E : layer.tile_map) {
+		Vector3i cell = E.key;
+		used[idx] = cell;
+		idx++;
+	}
+	return used;
+}
+
+Rect2i TileMap3D::get_used_cells_rect_proj(Vector3::Axis p_axis) const {
+	Vector3i min = Vector3i(INT32_MAX, INT32_MAX, INT32_MAX);
+	Vector3i max = Vector3i(INT32_MIN, INT32_MIN, INT32_MIN);
+	int has_cells = 0;
+	for (int i = 0; i < layers.size(); i++) {
+		TileMapLayer layer = layers[i];
+		int idx = 0;
+		for (KeyValue<MapCell, MapTile> &E : layer.tile_map) {
+			Vector3i cell = E.key;
+			min = Vector3i(MIN(min.x, cell.x), MIN(min.y, cell.y), MIN(min.z, cell.z));
+			max = Vector3i(MAX(max.x, cell.x), MAX(max.y, cell.y), MAX(max.z, cell.z));
+			idx++;
+		}
+		has_cells += idx;
+	}
+
+	if (has_cells == 0) {
+		return Rect2i();
+	} else {
+		int axis1 = (p_axis + 1) % 3;
+		int axis2 = (p_axis + 2) % 3;
+		Point2i position = Point2i(min[axis1], min[axis2]);
+		Size2i size = Size2i(max[axis1] - min[axis1], max[axis2] - min[axis2]);
+		return Rect2i(position, size);
+	}
+}
+
+Basis TileMap3D::get_cell_basis_vectors() const {
+	return cell_basis;
+}
+
+Vector3 TileMap3D::cell_to_local(const Vector3i &p_cell) const {
+	return cell_basis[0] * p_cell.x + cell_basis[1] * p_cell.y + cell_basis[2] * p_cell.z + _cell_offset;
 }
 
 void TileMap3D::_notification(int p_what) {

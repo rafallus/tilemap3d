@@ -36,6 +36,8 @@
 #include "scene/resources/multimesh.h"
 #include "tile_set_3d.h"
 
+#define Math_SQRT3 1.7320508075688772935274463415058724
+
 class TileMap3D : public Node3D {
 	GDCLASS(TileMap3D, Node3D);
 
@@ -213,6 +215,9 @@ private:
 	bool awaiting_update = false;
 	Transform3D last_transform;
 
+	Basis cell_basis;
+	Vector3 _cell_offset;
+
 	void _queue_octants_dirty();
 	void _recreate_octant_data();
 	void _update_octants_callback();
@@ -226,9 +231,10 @@ private:
 	bool _octant_update(Octant *p_oct);
 	void _insert_octant_cell(const OctantKey &p_ok, const MapCell &p_cell);
 	void _mark_octants_as_dirty();
+	void _tileset_changed();
 
 	OctantKey _cell_to_octant(const MapCell &p_cell) const;
-	Vector3 _cell_to_world(const MapCell &p_cell) const;
+	void _update_cell_vectors();
 
 	void _clear_layers();
 
@@ -241,9 +247,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	enum {
-		INVALID_ITEM = -1
-	};
+	static const int INVALID_ITEM = -1;
 
 	void set_tile_set(const Ref<TileSet3D> &p_set);
 	Ref<TileSet3D> get_tileset() const;
@@ -286,6 +290,12 @@ public:
 	void set_cell_rotation(int p_layer, const Vector3i &p_position, const Basis &p_rotation);
 	Basis get_cell_rotation(int p_layer, const Vector3i &p_position) const;
 	bool is_cell_rotation_orthogonal(int p_layer, const Vector3i &p_position) const;
+
+	TypedArray<Vector3i> get_used_cells(int p_layer) const;
+	Rect2i get_used_cells_rect_proj(Vector3::Axis p_axis) const;
+	Basis get_cell_basis_vectors() const;
+
+	Vector3 cell_to_local(const Vector3i &p_cell) const;
 
 	// set_layer_transparency
 

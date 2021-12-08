@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  tile_map_3d_editor.h                                                 */
+/*  tile_map_cell_gizmo_plugin.cpp                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,50 +28,42 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef TILE_MAP_3D_EDITOR_H
-#define TILE_MAP_3D_EDITOR_H
-
-#include "editor/editor_node.h"
-#include "scene/gui/box_container.h"
 #include "tile_map_cell_gizmo_plugin.h"
 
-class TileMap3DEditor : public VBoxContainer {
-	GDCLASS(TileMap3DEditor, VBoxContainer);
+bool TileMapCellGizmoPlugin::has_gizmo(Node3D *p_spatial) {
+    return Object::cast_to<TileMap3D>(p_spatial) != nullptr;
+}
 
-private:
-    static const int GRID_MIN_SIZE = 18;
-    static const int GRID_MARGIN = 8;
+bool TileMapCellGizmoPlugin::can_be_hidden() const {
+    return false;
+}
 
-    TileMap3D *tilemap;
-    Ref<TileSet3D> tileset;
+String TileMapCellGizmoPlugin::get_gizmo_name() const {
+    return "TileMap3D";
+}
 
-    EditorNode *editor;
-    UndoRedo *undo_redo = EditorNode::get_undo_redo();
+void TileMapCellGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
+    p_gizmo->clear();
+    Node3D *node3d = p_gizmo->get_spatial_node();
 
-    Vector3::Axis selected_axis;
-    int floor_level = 0;
+    PackedVector3Array lines;
+    lines.push_back(Vector3(0.5, 1, 0));
+    lines.push_back(Vector3(0.5, 2, 0));
 
-    RID grid;
-    RID grid_instance;
-    Ref<StandardMaterial3D> grid_mat;
-    Transform3D grid_xform;
+    PackedVector3Array handles;
+    handles.push_back(Vector3(-0.5, 1, 0));
+    handles.push_back(Vector3(-0.5, 2, 0));
 
-    Ref<TileMapCellGizmoPlugin> cell_plugin;
+    p_gizmo->add_lines(lines, get_material("main", p_gizmo), false);
+    p_gizmo->add_handles(handles, get_material("handles", p_gizmo));
 
-    void _draw_grid();
-    void _update_tileset();
-    void _tileset_changed();
+}
 
-protected:
-	void _notification(int p_what);
+TileMapCellGizmoPlugin::TileMapCellGizmoPlugin(Control *p_control) {
+    create_material("main", p_control->get_theme_color(SNAME("axis_x_color"), SNAME("Editor")));
+    create_handle_material("handles");
+}
 
-public:
-    void edit(TileMap3D *p_tilemap);
-    void set_3d_controls_visibility(bool p_visible);
-    EditorPlugin::AfterGUIInput forward_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event);
+TileMapCellGizmoPlugin::~TileMapCellGizmoPlugin() {
 
-    TileMap3DEditor(EditorNode *p_editor);
-    ~TileMap3DEditor();
-};
-
-#endif // TILE_MAP_3D_EDITOR_H
+}

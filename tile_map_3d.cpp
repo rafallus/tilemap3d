@@ -462,6 +462,7 @@ Ref<TileSet3D> TileMap3D::get_tileset() const {
 }
 
 void TileMap3D::set_cell_scale(float p_scale) {
+	ERR_FAIL_COND(p_scale <= 0.0);
 	cell_scale = p_scale;
 
 	_mark_octants_as_dirty();

@@ -45,7 +45,7 @@ private:
 
 	Ref<TileSet3D> tile_set;
 	float cell_scale = 1.0;
-	Vector3 octant_size = Vector3(1, 1, 1);
+	Vector3 octant_size = Vector3(8, 8, 8);
 	bool octant_center_x = true;
     bool octant_center_y = true;
     bool octant_center_z = true;

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  tile_map_3d_editor.h                                                 */
+/*  tile_map_cell_gizmo_plugin.h                                         */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,50 +28,34 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef TILE_MAP_3D_EDITOR_H
-#define TILE_MAP_3D_EDITOR_H
+#ifndef TILE_MAP_CELL_GIZMO_PLUGIN_H
+#define TILE_MAP_CELL_GIZMO_PLUGIN_H
 
-#include "editor/editor_node.h"
-#include "scene/gui/box_container.h"
-#include "tile_map_cell_gizmo_plugin.h"
+#include "editor/plugins/node_3d_editor_plugin.h"
+#include "tile_map_3d.h"
 
-class TileMap3DEditor : public VBoxContainer {
-	GDCLASS(TileMap3DEditor, VBoxContainer);
+class TileMapCellGizmoPlugin : public EditorNode3DGizmoPlugin {
+	GDCLASS(TileMapCellGizmoPlugin, EditorNode3DGizmoPlugin);
 
 private:
-    static const int GRID_MIN_SIZE = 18;
-    static const int GRID_MARGIN = 8;
 
-    TileMap3D *tilemap;
-    Ref<TileSet3D> tileset;
-
-    EditorNode *editor;
-    UndoRedo *undo_redo = EditorNode::get_undo_redo();
-
-    Vector3::Axis selected_axis;
-    int floor_level = 0;
-
-    RID grid;
-    RID grid_instance;
-    Ref<StandardMaterial3D> grid_mat;
-    Transform3D grid_xform;
-
-    Ref<TileMapCellGizmoPlugin> cell_plugin;
-
-    void _draw_grid();
-    void _update_tileset();
-    void _tileset_changed();
-
-protected:
-	void _notification(int p_what);
+// protected:
+// 	void _notification(int p_what);
 
 public:
-    void edit(TileMap3D *p_tilemap);
-    void set_3d_controls_visibility(bool p_visible);
-    EditorPlugin::AfterGUIInput forward_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event);
+    bool has_gizmo(Node3D *p_spatial) override;
+	bool can_be_hidden() const override;
+	String get_gizmo_name() const override;
+	// int get_priority() const override;
 
-    TileMap3DEditor(EditorNode *p_editor);
-    ~TileMap3DEditor();
+	// String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id) const override;
+	// Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id) const override;
+	// void set_handle(const EditorNode3DGizmo *p_gizmo, int p_id, Camera3D *p_camera, const Point2 &p_point) override;
+	// void commit_handle(const EditorNode3DGizmo *p_gizmo, int p_id, const Variant &p_restore, bool p_cancel = false) override;
+	void redraw(EditorNode3DGizmo *p_gizmo) override;
+
+    TileMapCellGizmoPlugin(Control *p_control);
+    ~TileMapCellGizmoPlugin();
 };
 
-#endif // TILE_MAP_3D_EDITOR_H
+#endif // TILE_MAP_CELL_GIZMO_PLUGIN_H

@@ -223,6 +223,7 @@ void TileMap3DEditor::edit(TileMap3D *p_tilemap) {
         }
         set_3d_controls_visibility(false);
     } else {
+        tilemap->set_transform_gizmo_visible(false);
         set_process(true);
         _update_tileset();
     }
@@ -246,12 +247,16 @@ void TileMap3DEditor::_notification(int p_what) {
             grid = RS::get_singleton()->mesh_create();
             grid_instance = RS::get_singleton()->instance_create2(grid, get_tree()->get_root()->get_world_3d()->get_scenario());
             RS::get_singleton()->instance_set_layer_mask(grid_instance, 1 << Node3DEditorViewport::MISC_TOOL_LAYER);
+            cell_plugin = Ref<TileMapCellGizmoPlugin>(memnew(TileMapCellGizmoPlugin(this)));
+            Node3DEditor::get_singleton()->add_gizmo_plugin(cell_plugin);
         } break;
         case NOTIFICATION_EXIT_TREE: {
             RS::get_singleton()->free(grid_instance);
             RS::get_singleton()->free(grid);
             grid_instance = RID();
             grid = RID();
+            Node3DEditor::get_singleton()->remove_gizmo_plugin(cell_plugin);
+            Ref<TileMapCellGizmoPlugin>(cell_plugin).unref();
         } break;
         case NOTIFICATION_PROCESS: {
 			if (!tilemap) {
@@ -272,6 +277,7 @@ void TileMap3DEditor::_notification(int p_what) {
 }
 
 TileMap3DEditor::TileMap3DEditor(EditorNode *p_editor) {
+    // ToolMode Node3DEditor::get_singleton()->get_tool_mode()
     editor = p_editor;
 
     grid_mat.instantiate();

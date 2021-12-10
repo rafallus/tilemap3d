@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "editor/plugins/node_3d_editor_plugin.h"
+//#include "core/object/message_queue.h"
 #include "tile_map_3d_editor.h"
 
 #define CREATE_POINTS(i, j, b1, b2, a1, a2) \
@@ -66,8 +66,9 @@
     colors.push_back(Color(1, 1, 1, a)); \
     colors.push_back(Color(1, 1, 1, a));
 
-Pair<Vector<Vector3>, Vector<Color>> get_grid_lines_cf(const Vector2i &p0, const Vector2i &sz, const Vector2 &b1, const Vector2 &b2, int a1, int a2, int margin) {
-    const float MIN_ALPHA = 0.05;
+#define MIN_ALPHA 0.05
+
+Pair<Vector<Vector3>, Vector<Color>> get_grid_lines_cuboid(const Vector2i &p0, const Vector2i &sz, const Vector2 &b1, const Vector2 &b2, int a1, int a2, int margin) {
     float m = (1.0 - MIN_ALPHA) / margin;
     Vector<Vector3> points;
     Vector<Color> colors;
@@ -144,6 +145,12 @@ Pair<Vector<Vector3>, Vector<Color>> get_grid_lines_cf(const Vector2i &p0, const
 #undef CREATE_POINTS2
 #undef PUSH_POINTS2
 
+// Pair<Vector<Vector3>, Vector<Color>> get_grid_lines_hexprism(const Vector2i &p0, const Vector2i &sz, const Vector2 &b1, const Vector2 &b2, int a1, int a2, int margin) {
+
+// }
+
+#undef MIN_ALPHA
+
 void TileMap3DEditor::_draw_grid() {
     RS::get_singleton()->mesh_clear(grid);
 
@@ -157,9 +164,9 @@ void TileMap3DEditor::_draw_grid() {
         rect.position.x -= (minsz - rect.size.x) * 0.5;
         rect.size.x = minsz;
     }
-    if (rect.size.y < minsz) {
-        rect.position.y -= (minsz - rect.size.y) * 0.5;
-        rect.size.y = minsz;
+    if (rect.size.y < minsz - 6) {
+        rect.position.y -= (minsz - 6 - rect.size.y) * 0.5;
+        rect.size.y = minsz - 6;
     }
 
     bool inv[3] = {tileset->is_axis_inverted_x(), tileset->is_axis_inverted_y(), tileset->is_axis_inverted_z()};
@@ -174,7 +181,10 @@ void TileMap3DEditor::_draw_grid() {
         rect.position.y += rect.size.y;
         basis[axis2] = -basis[axis2];
     }
-    Pair<Vector<Vector3>, Vector<Color>> r = get_grid_lines_cf(rect.position, rect.size, Vector2(basis[axis1][axis1], basis[axis1][axis2]), Vector2(basis[axis2][axis1], basis[axis2][axis2]), axis1, axis2, GRID_MARGIN);
+    Pair<Vector<Vector3>, Vector<Color>> r;
+    if (tileset->get_tile_shape() == TileSet3D::TILE_SHAPE_CUBOID) {
+        r = get_grid_lines_cuboid(rect.position, rect.size, Vector2(basis[axis1][axis1], basis[axis1][axis2]), Vector2(basis[axis2][axis1], basis[axis2][axis2]), axis1, axis2, GRID_MARGIN);
+    }
     Array d;
     d.resize(RS::ARRAY_MAX);
     d[RS::ARRAY_VERTEX] = r.first;
@@ -191,7 +201,7 @@ void TileMap3DEditor::_update_tileset() {
     tileset = tilemap->get_tileset();
 
     if (tileset.is_valid()) {
-        tileset->connect("changed", callable_mp(this, &TileMap3DEditor::_tileset_changed));
+        tileset->connect("changed", callable_mp(this, &TileMap3DEditor::_tileset_changed), Vector<Variant>(), CONNECT_DEFERRED);
     }
 
     if (tileset.is_null()) {
@@ -202,8 +212,41 @@ void TileMap3DEditor::_update_tileset() {
 }
 
 void TileMap3DEditor::_tileset_changed() {
+    // Wait to make sure tilemap is updated
+    //MessageQueue::get_singleton()->push_callable(callable_mp(this, &TileMap3DEditor::_apply_tileset_changed));
+    _draw_grid();
+
+}
+
+void TileMap3DEditor::_apply_tileset_changed() {
     // update_palette
     _draw_grid();
+}
+
+void TileMap3DEditor::_fit_tools_buttons() {
+    float w = get_size().width;
+    float bw = select_tool_button->get_size().width;
+    int hsep = get_theme_constant(SNAME("hseparation"), SNAME("GridContainer"));
+    List<BaseButton*> buttons;
+    tools_group->get_buttons(&buttons);
+    int nb = buttons.size();
+    int ncolums = MIN(Math::floor((w + hsep) / (bw + hsep)), nb);
+    if (ncolums == tools_columns) {
+        return;
+    }
+    float bh = select_tool_button->get_size().height;
+    int vsep = get_theme_constant(SNAME("vseparation"), SNAME("GridContainer"));
+    int ic = 0, ir = 0;
+    for (BaseButton *button : buttons) {
+        button->set_position(Point2(ic * (bw + hsep), ir * (bh + vsep)));
+        ic++;
+        if (ic == ncolums) {
+            ic = 0;
+            ir++;
+        }
+    }
+    int nrows = Math::ceil(nb / float(ncolums));
+    tools_container->set_custom_minimum_size(Size2(bw, nrows * bh + (nrows - 1) * vsep));
 }
 
 void TileMap3DEditor::edit(TileMap3D *p_tilemap) {
@@ -249,6 +292,19 @@ void TileMap3DEditor::_notification(int p_what) {
             RS::get_singleton()->instance_set_layer_mask(grid_instance, 1 << Node3DEditorViewport::MISC_TOOL_LAYER);
             cell_plugin = Ref<TileMapCellGizmoPlugin>(memnew(TileMapCellGizmoPlugin(this)));
             Node3DEditor::get_singleton()->add_gizmo_plugin(cell_plugin);
+
+            [[fallthrough]];
+        }
+        case NOTIFICATION_THEME_CHANGED: {
+            select_tool_button->set_icon(get_theme_icon("ToolSelect", "EditorIcons"));
+            paint_tool_button->set_icon(get_theme_icon("Edit", "EditorIcons"));
+            brush_tool_button->set_icon(get_theme_icon("CanvasItem", "EditorIcons"));
+            bucket_tool_button->set_icon(get_theme_icon("Bucket", "EditorIcons"));
+            wand_tool_button->set_icon(get_theme_icon("Wand", "EditorIcons"));
+            picker_tool_button->set_icon(get_theme_icon("ColorPick", "EditorIcons"));
+            eraser_tool_button->set_icon(get_theme_icon("Eraser", "EditorIcons"));
+            display_thumbnails_button->set_icon(get_theme_icon("FileThumbnail", "EditorIcons"));
+            display_list_button->set_icon(get_theme_icon("FileList", "EditorIcons"));
         } break;
         case NOTIFICATION_EXIT_TREE: {
             RS::get_singleton()->free(grid_instance);
@@ -273,6 +329,9 @@ void TileMap3DEditor::_notification(int p_what) {
                 _update_tileset();
             }
 		} break;
+        case NOTIFICATION_RESIZED: {
+            _fit_tools_buttons();
+        } break;
     }
 }
 
@@ -288,8 +347,197 @@ TileMap3DEditor::TileMap3DEditor(EditorNode *p_editor) {
 	grid_mat->set_albedo(Color(0.8, 0.5, 0.1));
 
     selected_axis = Vector3::AXIS_Y;
+
+    set_custom_minimum_size(Size2(130, 0) * EDSCALE);
+
+    tools_container = memnew(Control);
+    tools_container->set_h_size_flags(SIZE_EXPAND_FILL);
+    tools_container->connect("resized", callable_mp(this, &TileMap3DEditor::_fit_tools_buttons), Vector<Variant>(), CONNECT_DEFERRED);
+    add_child(tools_container);
+
+    tools_group.instantiate();
+    //display_mode_group->connect("pressed", callable_mp(this, &TileSet3DEditor::_display_mode_button_pressed));
+
+    select_tool_button = memnew(Button);
+    select_tool_button->set_toggle_mode(true);
+    select_tool_button->set_pressed(true);
+    select_tool_button->set_flat(true);
+    select_tool_button->set_button_group(tools_group);
+    select_tool_button->set_tooltip(TTR("Select, move, rotate and scale tiles."));
+    tools_container->add_child(select_tool_button);
+
+    paint_tool_button = memnew(Button);
+    paint_tool_button->set_toggle_mode(true);
+    paint_tool_button->set_pressed(false);
+    paint_tool_button->set_flat(true);
+    paint_tool_button->set_button_group(tools_group);
+    paint_tool_button->set_tooltip(TTR("Paint on tiles overriding existing ones."));
+    tools_container->add_child(paint_tool_button);
+
+    brush_tool_button = memnew(Button);
+    brush_tool_button->set_toggle_mode(true);
+    brush_tool_button->set_pressed(false);
+    brush_tool_button->set_flat(true);
+    brush_tool_button->set_button_group(tools_group);
+    brush_tool_button->set_tooltip(TTR("Paint above existing tiles."));
+    tools_container->add_child(brush_tool_button);
+
+    bucket_tool_button = memnew(Button);
+    bucket_tool_button->set_toggle_mode(true);
+    bucket_tool_button->set_pressed(false);
+    bucket_tool_button->set_flat(true);
+    bucket_tool_button->set_button_group(tools_group);
+    bucket_tool_button->set_tooltip(TTR("Fill available cells with a single tile within an octant."));
+    tools_container->add_child(bucket_tool_button);
+
+    wand_tool_button = memnew(Button);
+    wand_tool_button->set_toggle_mode(true);
+    wand_tool_button->set_pressed(false);
+    wand_tool_button->set_flat(true);
+    wand_tool_button->set_button_group(tools_group);
+    wand_tool_button->set_tooltip(TTR("Tile customization tool."));
+    tools_container->add_child(wand_tool_button);
+
+    picker_tool_button = memnew(Button);
+    picker_tool_button->set_toggle_mode(true);
+    picker_tool_button->set_pressed(false);
+    picker_tool_button->set_flat(true);
+    picker_tool_button->set_button_group(tools_group);
+    picker_tool_button->set_tooltip(TTR("Select a tile as the current brush."));
+    tools_container->add_child(picker_tool_button);
+
+    eraser_tool_button = memnew(Button);
+    eraser_tool_button->set_toggle_mode(true);
+    eraser_tool_button->set_pressed(false);
+    eraser_tool_button->set_flat(true);
+    eraser_tool_button->set_button_group(tools_group);
+    eraser_tool_button->set_tooltip(TTR("Delete tiles."));
+    tools_container->add_child(eraser_tool_button);
+
+    HSeparator *separator1 = memnew(HSeparator);
+    add_child(separator1);
+
+    HBoxContainer *axis_edit_container = memnew(HBoxContainer);
+    axis_edit_container->set_h_size_flags(SIZE_EXPAND_FILL);
+    axis_edit_container->add_theme_constant_override(SNAME("hseparation"), 0);
+    add_child(axis_edit_container);
+
+    Ref<ButtonGroup> axis_edit_group = memnew(ButtonGroup);
+
+    Button *axis_edit_x = memnew(Button);
+    axis_edit_x->set_text("X");
+    axis_edit_x->set_toggle_mode(true);
+    axis_edit_x->set_pressed(false);
+    axis_edit_x->set_h_size_flags(SIZE_EXPAND_FILL);
+    axis_edit_x->set_button_group(axis_edit_group);
+    axis_edit_x->add_theme_font_size_override("font_size", 10 * EDSCALE);
+    axis_edit_container->add_child(axis_edit_x);
+
+    Button *axis_edit_y = memnew(Button);
+    axis_edit_y->set_text("Y");
+    axis_edit_y->set_toggle_mode(true);
+    axis_edit_y->set_pressed(false);
+    axis_edit_y->set_h_size_flags(SIZE_EXPAND_FILL);
+    axis_edit_y->set_button_group(axis_edit_group);
+    axis_edit_y->add_theme_font_size_override("font_size", 10 * EDSCALE);
+    axis_edit_container->add_child(axis_edit_y);
+
+    Button *axis_edit_z = memnew(Button);
+    axis_edit_z->set_text("Z");
+    axis_edit_z->set_toggle_mode(true);
+    axis_edit_z->set_pressed(false);
+    axis_edit_z->set_h_size_flags(SIZE_EXPAND_FILL);
+    axis_edit_z->set_button_group(axis_edit_group);
+    axis_edit_z->add_theme_font_size_override("font_size", 10 * EDSCALE);
+    axis_edit_container->add_child(axis_edit_z);
+
+    Button *axis_edit_m = memnew(Button);
+    axis_edit_m->set_text("M");
+    axis_edit_m->set_toggle_mode(true);
+    axis_edit_m->set_pressed(true);
+    axis_edit_m->set_h_size_flags(SIZE_EXPAND_FILL);
+    axis_edit_m->set_button_group(axis_edit_group);
+    axis_edit_m->add_theme_font_size_override("font_size", 10 * EDSCALE);
+    axis_edit_container->add_child(axis_edit_m);
+
+    VSplitContainer *bottom_split = memnew(VSplitContainer);
+    bottom_split->set_h_size_flags(SIZE_EXPAND_FILL);
+    bottom_split->set_v_size_flags(SIZE_EXPAND_FILL);
+    add_child(bottom_split);
+
+    layer_list = memnew(ItemList);
+    layer_list->set_stretch_ratio(0.35);
+    layer_list->set_h_size_flags(SIZE_EXPAND_FILL);
+    layer_list->set_v_size_flags(SIZE_EXPAND_FILL);
+    bottom_split->add_child(layer_list);
+
+    VBoxContainer *bottom_container = memnew(VBoxContainer);
+    bottom_container->set_h_size_flags(SIZE_EXPAND_FILL);
+    bottom_container->set_v_size_flags(SIZE_EXPAND_FILL);
+    bottom_split->add_child(bottom_container);
+
+    OptionButton *element_types_options = memnew(OptionButton);
+    element_types_options->set_h_size_flags(SIZE_EXPAND_FILL);
+    element_types_options->add_item(TTR("Items"), 0);
+    element_types_options->add_item(TTR("Patterns"), 0);
+    bottom_container->add_child(element_types_options);
+
+    collection_options = memnew(OptionButton);
+    collection_options->set_h_size_flags(SIZE_EXPAND_FILL);
+    collection_options->set_auto_translate(false);
+    bottom_container->add_child(collection_options);
+
+    HBoxContainer *cursors_container = memnew(HBoxContainer);
+    cursors_container->set_h_size_flags(SIZE_EXPAND_FILL);
+    bottom_container->add_child(cursors_container);
+
+    Button *main_cursor_button = memnew(Button);
+    main_cursor_button->set_expand_icon(true);
+    main_cursor_button->set_custom_minimum_size(Size2(40, 40) * EDSCALE);
+    main_cursor_button->set_disabled(true);
+    cursors_container->add_child(main_cursor_button);
+
+    Button *sec_cursor_button = memnew(Button);
+    sec_cursor_button->set_expand_icon(true);
+    sec_cursor_button->set_custom_minimum_size(Size2(40, 40) * EDSCALE);
+    sec_cursor_button->set_disabled(true);
+    cursors_container->add_child(sec_cursor_button);
+
+    HBoxContainer *tiles_tools_container = memnew(HBoxContainer);
+    tiles_tools_container->set_h_size_flags(SIZE_EXPAND_FILL);
+    bottom_container->add_child(tiles_tools_container);
+
+    TextEdit *search_edit = memnew(TextEdit);
+    search_edit->set_h_size_flags(SIZE_EXPAND_FILL);
+    tiles_tools_container->add_child(search_edit);
+
+    Ref<ButtonGroup> display_group = memnew(ButtonGroup);
+
+    display_thumbnails_button = memnew(Button);
+    display_thumbnails_button->set_toggle_mode(true);
+    display_thumbnails_button->set_pressed(true);
+    display_thumbnails_button->set_button_group(display_group);
+    display_thumbnails_button->set_flat(true);
+    tiles_tools_container->add_child(display_thumbnails_button);
+
+    display_list_button = memnew(Button);
+    display_list_button->set_toggle_mode(true);
+    display_list_button->set_pressed(false);
+    display_list_button->set_button_group(display_group);
+    display_list_button->set_flat(true);
+    tiles_tools_container->add_child(display_list_button);
+
+    HSlider *zoom_slider = memnew(HSlider);
+    zoom_slider->set_h_size_flags(SIZE_EXPAND_FILL);
+    zoom_slider->set_v_size_flags(SIZE_SHRINK_CENTER);
+    zoom_slider->set_value(50.0);
+    bottom_container->add_child(zoom_slider);
+
+    tile_list = memnew(ItemList);
+    tile_list->set_h_size_flags(SIZE_EXPAND_FILL);
+    tile_list->set_v_size_flags(SIZE_EXPAND_FILL);
+    bottom_container->add_child(tile_list);
 }
 
 TileMap3DEditor::~TileMap3DEditor() {
-
 }

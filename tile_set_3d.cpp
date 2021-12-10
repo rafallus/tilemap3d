@@ -1679,8 +1679,8 @@ void TileSet3D::_bind_methods() {
 
 	ADD_GROUP("Tile", "tile_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_shape", PROPERTY_HINT_ENUM, "Cuboid,Hexagonal Prism"), "set_tile_shape", "get_tile_shape");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_orientation", PROPERTY_HINT_ENUM, "Flat,Diamond"), "set_tile_orientation", "get_tile_orientation");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_layout", PROPERTY_HINT_ENUM, "Aligned,Rotated"), "set_tile_layout", "get_tile_layout");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_layout", PROPERTY_HINT_ENUM, "Flat,Diamond"), "set_tile_layout", "get_tile_layout");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tile_orientation", PROPERTY_HINT_ENUM, "Aligned,Rotated"), "set_tile_orientation", "get_tile_orientation");
 
 	ADD_GROUP("Cell", "cell_");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "cell_size"), "set_cell_size", "get_cell_size");
@@ -1698,10 +1698,10 @@ void TileSet3D::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(TILE_SHAPE_CUBOID);
 	BIND_ENUM_CONSTANT(TILE_SHAPE_HEXAGONAL_PRISM);
-	BIND_ENUM_CONSTANT(TILE_ORIENTATION_FLAT);
-	BIND_ENUM_CONSTANT(TILE_ORIENTATION_DIAMOND);
-	BIND_ENUM_CONSTANT(TILE_LAYOUT_ALIGNED);
-	BIND_ENUM_CONSTANT(TILE_LAYOUT_ROTATED);
+	BIND_ENUM_CONSTANT(TILE_LAYOUT_FLAT);
+	BIND_ENUM_CONSTANT(TILE_LAYOUT_DIAMOND);
+	BIND_ENUM_CONSTANT(TILE_ORIENTATION_ALIGNED);
+	BIND_ENUM_CONSTANT(TILE_ORIENTATION_ROTATED);
 }
 
 TileSet3D::TileSet3D() {

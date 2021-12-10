@@ -342,21 +342,21 @@ public:
         TILE_SHAPE_HEXAGONAL_PRISM
     };
 
-    enum TileOrientation {
-        TILE_ORIENTATION_FLAT,
-        TILE_ORIENTATION_DIAMOND
+    enum TileLayout {
+        TILE_LAYOUT_FLAT,
+        TILE_LAYOUT_DIAMOND
     };
 
-    enum TileLayout {
-        TILE_LAYOUT_ALIGNED,
-        TILE_LAYOUT_ROTATED
+    enum TileOrientation {
+        TILE_ORIENTATION_ALIGNED,
+        TILE_ORIENTATION_ROTATED
     };
 
 private:
 
     TileShape tile_shape = TILE_SHAPE_CUBOID;
-    TileOrientation tile_orientation = TILE_ORIENTATION_FLAT;
-    TileLayout tile_layout = TILE_LAYOUT_ALIGNED;
+    TileLayout tile_layout = TILE_LAYOUT_FLAT;
+    TileOrientation tile_orientation = TILE_ORIENTATION_ALIGNED;
 
     Vector3 cell_size = Vector3(1, 1, 1);
     bool cell_center_x = true;

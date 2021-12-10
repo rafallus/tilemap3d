@@ -48,6 +48,24 @@ private:
     EditorNode *editor;
     UndoRedo *undo_redo = EditorNode::get_undo_redo();
 
+    int tools_columns = -1;
+    Ref<ButtonGroup> tools_group;
+    Control *tools_container;
+    Button *select_tool_button;
+    Button *paint_tool_button;
+    Button *brush_tool_button;
+    Button *bucket_tool_button;
+    Button *wand_tool_button;
+    Button *picker_tool_button;
+    Button *eraser_tool_button;
+
+    Button *display_thumbnails_button;
+    Button *display_list_button;
+
+    ItemList *layer_list;
+    OptionButton *collection_options;
+    ItemList *tile_list;
+
     Vector3::Axis selected_axis;
     int floor_level = 0;
 
@@ -61,6 +79,8 @@ private:
     void _draw_grid();
     void _update_tileset();
     void _tileset_changed();
+    void _apply_tileset_changed();
+    void _fit_tools_buttons();
 
 protected:
 	void _notification(int p_what);

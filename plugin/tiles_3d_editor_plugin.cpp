@@ -47,9 +47,13 @@ void Tiles3DEditorPlugin::edit(Object *p_object) {
         } else if (p_object->is_class("TileSet3D")) {
             tileset = Ref<TileSet3D>(p_object);
             tileset_editor->edit(tileset);
-            if (tilemap && (tilemap->get_tileset() != tileset || !tilemap->is_inside_tree())) {
-                tilemap = nullptr;
-                tilemap_editor->edit(tilemap);
+            if (tilemap) {
+                if (tilemap->get_tileset() != tileset || !tilemap->is_inside_tree()) {
+                    tilemap = nullptr;
+                    tilemap_editor->edit(tilemap);
+                } else {
+                    tilemap_editor->set_3d_controls_visibility(true);
+                }
             }
         }
     }

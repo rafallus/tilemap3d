@@ -44,18 +44,17 @@ String TileMapCellGizmoPlugin::get_gizmo_name() const {
 
 void TileMapCellGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
     p_gizmo->clear();
-    Node3D *node3d = p_gizmo->get_spatial_node();
 
-    PackedVector3Array lines;
-    lines.push_back(Vector3(0.5, 1, 0));
-    lines.push_back(Vector3(0.5, 2, 0));
+    // PackedVector3Array lines;
+    // lines.push_back(Vector3(0.5, 1, 0));
+    // lines.push_back(Vector3(0.5, 2, 0));
 
-    PackedVector3Array handles;
-    handles.push_back(Vector3(-0.5, 1, 0));
-    handles.push_back(Vector3(-0.5, 2, 0));
+    // PackedVector3Array handles;
+    // handles.push_back(Vector3(-0.5, 1, 0));
+    // handles.push_back(Vector3(-0.5, 2, 0));
 
-    p_gizmo->add_lines(lines, get_material("main", p_gizmo), false);
-    p_gizmo->add_handles(handles, get_material("handles", p_gizmo));
+    // p_gizmo->add_lines(lines, get_material("main", p_gizmo), false);
+    // p_gizmo->add_handles(handles, get_material("handles", p_gizmo));
 
 }
 

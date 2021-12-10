@@ -345,26 +345,26 @@ void TileMap3D::_update_cell_vectors() {
 	v[axis0] = inv[axis0];
 	cell_basis[axis0] = v;
 	if (tile_set->get_tile_shape() == TileSet3D::TILE_SHAPE_CUBOID) {
-		if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_FLAT) {
-			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+		if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_FLAT) {
+			if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_ALIGNED) {
 				v = Vector3();
 				v[axis1] = inv[axis1];
 				cell_basis[axis1] = v;
 				v = Vector3();
 				v[axis2] = inv[axis2];
 				cell_basis[axis2] = v;
-			} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_FLAT, TILE_LAYOUT_ROTATED
+			} else { // TILE_SHAPE_CUBOID, TILE_LAYOUT_FLAT, TILE_ORIENTATION_ROTATED
 				v = Vector3();
-				v[axis1] = -inv[axis2];
+				v[axis2] = -inv[axis1];
 				cell_basis[axis1] = v;
 				v = Vector3();
-				v[axis2] = inv[axis1];
+				v[axis1] = inv[axis2];
 				cell_basis[axis2] = v;
 			}
-		} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_DIAMOND
+		} else { // TILE_SHAPE_CUBOID, TILE_LAYOUT_DIAMOND
 			_cell_offset[axis1] *= Math_SQRT2;
 			_cell_offset[axis2] = 0.0;
-			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+			if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_ALIGNED) {
 				v = Vector3();
 				float f = inv[axis1] * Math_SQRT12;
 				v[axis1] = f;
@@ -375,7 +375,7 @@ void TileMap3D::_update_cell_vectors() {
 				v[axis1] = f;
 				v[axis2] = f;
 				cell_basis[axis2] = v;
-			} else { // TILE_SHAPE_CUBOID, TILE_ORIENTATION_DIAMOND, TILE_LAYOUT_ROTATED
+			} else { // TILE_SHAPE_CUBOID, TILE_LAYOUT_DIAMOND, TILE_ORIENTATION_ROTATED
 				v = Vector3();
 				float f = inv[axis1] * Math_SQRT12;
 				v[axis1] = f;
@@ -389,9 +389,9 @@ void TileMap3D::_update_cell_vectors() {
 			}
 		}
 	} else { // TILE_SHAPE_HEXAGONAL_PRISM
-		if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_FLAT) {
+		if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_FLAT) {
 			_cell_offset[axis1] *= Math_SQRT3;
-			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+			if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_ALIGNED) {
 				v = Vector3();
 				v[axis1] = inv[axis1] * Math_SQRT3;
 				cell_basis[axis1] = v;
@@ -399,7 +399,7 @@ void TileMap3D::_update_cell_vectors() {
 				v[axis1] = -inv[axis2] * 0.5 * Math_SQRT3;
 				v[axis2] = inv[axis2] * 1.5;
 				cell_basis[axis2] = v;
-			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_FLAT, TILE_LAYOUT_ROTATED
+			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_LAYOUT_FLAT, TILE_ORIENTATION_ROTATED
 				v = Vector3();
 				v[axis1] = 0.5 * Math_SQRT3;
 				v[axis2] = -1.5;
@@ -407,9 +407,9 @@ void TileMap3D::_update_cell_vectors() {
 				v[axis2] *= -1.0;
 				cell_basis[axis2] = v * inv[axis2];
 			}
-		} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_DIAMOND
+		} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_LAYOUT_DIAMOND
 			_cell_offset[axis2] *= Math_SQRT3;
-			if (tile_set->get_tile_layout() == TileSet3D::TILE_LAYOUT_ALIGNED) {
+			if (tile_set->get_tile_orientation() == TileSet3D::TILE_ORIENTATION_ALIGNED) {
 				v = Vector3();
 				v[axis1] = inv[axis1] * 1.5;
 				v[axis2] = -inv[axis1] * 0.5 * Math_SQRT3;
@@ -417,7 +417,7 @@ void TileMap3D::_update_cell_vectors() {
 				v = Vector3();
 				v[axis2] = inv[axis2] * Math_SQRT3;
 				cell_basis[axis2] = v;
-			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_ORIENTATION_DIAMOND, TILE_LAYOUT_ROTATED
+			} else { // TILE_SHAPE_HEXAGONAL_PRISM, TILE_LAYOUT_DIAMOND, TILE_ORIENTATION_ROTATED
 				v = Vector3();
 				v[axis1] = 1.5;
 				v[axis2] = 0.5 * Math_SQRT3;

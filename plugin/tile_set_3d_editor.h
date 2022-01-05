@@ -37,7 +37,7 @@ class TileSet3DEditor : public VBoxContainer {
 	GDCLASS(TileSet3DEditor, VBoxContainer);
 
 private:
-    Ref<TileSet3D> tile_set;
+    Ref<TileSet3D> tileset;
 
     UndoRedo *undo_redo = EditorNode::get_undo_redo();
 

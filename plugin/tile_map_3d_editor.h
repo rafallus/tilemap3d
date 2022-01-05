@@ -81,6 +81,8 @@ private:
     void _tileset_changed();
     void _apply_tileset_changed();
     void _fit_tools_buttons();
+    void _update_tileset_ui();
+    void _collection_selected(int p_index);
 
 protected:
 	void _notification(int p_what);

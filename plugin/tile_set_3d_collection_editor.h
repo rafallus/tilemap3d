@@ -46,7 +46,7 @@ private:
         GDCLASS(TileSet3DCollectionProxyObject, Object);
 
     private:
-        Ref<TileSet3D> tile_set;
+        Ref<TileSet3D> tileset;
         int cid;
         int cindex;
 
@@ -59,7 +59,7 @@ private:
         void update_collection_index(int p_index);
     };
 
-    Ref<TileSet3D> tile_set;
+    Ref<TileSet3D> tileset;
 
     UndoRedo *undo_redo = EditorNode::get_undo_redo();
 

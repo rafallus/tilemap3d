@@ -55,31 +55,31 @@ void TileSet3DEditor::_collection_selected(int p_index) {
     no_collection_label->hide();
     collection_editor->show();
     int cid = collections_list->get_item_metadata(p_index);
-    export_button->set_disabled(tile_set->get_collection_tile_count(cid) == 0);
+    export_button->set_disabled(tileset->get_collection_tile_count(cid) == 0);
     collection_editor->edit(cid);
 }
 
 void TileSet3DEditor::_collection_delete() {
-    ERR_FAIL_COND(!tile_set.is_valid());
+    ERR_FAIL_COND(!tileset.is_valid());
 
     int current_idx = collections_list->get_current();
     int cid = collections_list->get_item_metadata(current_idx);
-    Ref<TileSet3DCollection> to_delete = tile_set->get_collection(cid);
+    Ref<TileSet3DCollection> to_delete = tileset->get_collection(cid);
     undo_redo->create_action(TTR("Delete tile collection"));
-    undo_redo->add_do_method(*tile_set, "remove_collection", cid);
+    undo_redo->add_do_method(*tileset, "remove_collection", cid);
     undo_redo->add_undo_method(this, "_set_selected_collection", current_idx);
-    undo_redo->add_undo_method(*tile_set, "add_collection", to_delete, cid, current_idx);
+    undo_redo->add_undo_method(*tileset, "add_collection", to_delete, cid, current_idx);
     undo_redo->commit_action();
     _selected_collection = current_idx - 1;
 }
 
 void TileSet3DEditor::_collection_add_id_pressed(int p_id) {
     TileSet3DCollection::CollectionType ctype = p_id == 0 ? TileSet3DCollection::COLLECTION_TYPE_ATLAS : TileSet3DCollection::COLLECTION_TYPE_SCENES;
-    int cid = tile_set->get_next_collection_id();
+    int cid = tileset->get_next_collection_id();
     undo_redo->create_action(TTR("Add tile collection"));
     undo_redo->add_do_method(this, "_tile_set_add_collection", cid, ctype);
     undo_redo->add_undo_method(this, "_set_selected_collection", _selected_collection);
-    undo_redo->add_undo_method(*tile_set, "remove_collection", cid);
+    undo_redo->add_undo_method(*tileset, "remove_collection", cid);
     undo_redo->commit_action();
 }
 
@@ -106,24 +106,24 @@ void TileSet3DEditor::_collection_changed(int p_id) {
 }
 
 void TileSet3DEditor::_update_collection(int p_index, int p_id) {
-    String collection_name = tile_set->get_collection_name(p_id);
+    String collection_name = tileset->get_collection_name(p_id);
     if (collection_name.is_empty()) {
-        String nm = tile_set->get_collection_type(p_id) == TileSet3DCollection::COLLECTION_TYPE_ATLAS ? TTR("Atlas Collection") : TTR("Scene Collection");
+        String nm = tileset->get_collection_type(p_id) == TileSet3DCollection::COLLECTION_TYPE_ATLAS ? TTR("Atlas Collection") : TTR("Scene Collection");
         collection_name = vformat("[%s]", nm);
     }
     String text = vformat("%s (ID: %d)", collection_name, p_id);
     collections_list->set_item_text(p_index, text);
-    Ref<Texture2D> icon = tile_set->get_collection_icon(p_id);
+    Ref<Texture2D> icon = tileset->get_collection_icon(p_id);
     collections_list->set_item_icon(p_index, icon);
 }
 
 void TileSet3DEditor::_update_collections_list() {
     collections_list->clear();
-    int ncollections = tile_set.is_null() ? 0 : tile_set->get_collection_count();
+    int ncollections = tileset.is_null() ? 0 : tileset->get_collection_count();
 
 	if (ncollections > 0) {
 		for (int i = 0; i < ncollections; i++) {
-			int cid = tile_set->get_collection_id(i);
+			int cid = tileset->get_collection_id(i);
 			int idx = collections_list->add_item("");
 			collections_list->set_item_metadata(idx, cid);
             _update_collection(idx, cid);
@@ -146,13 +146,13 @@ void TileSet3DEditor::_update_collections_list() {
 }
 
 void TileSet3DEditor::_tile_set_add_collection(int p_collection_id, TileSet3DCollection::CollectionType p_type) {
-    _selected_collection = tile_set->get_collection_count();
-    tile_set->create_collection(p_type, p_collection_id);
+    _selected_collection = tileset->get_collection_count();
+    tileset->create_collection(p_type, p_collection_id);
 	String cname = vformat("Collection #%d", p_collection_id);
 	String icon_name = p_type == TileSet3DCollection::COLLECTION_TYPE_ATLAS ? "TileSet" : "PackedScene";
 	Ref<Texture2D> icon = get_theme_icon(icon_name, "EditorIcons");
-	tile_set->set_collection_icon(p_collection_id, icon);
-	tile_set->set_collection_name(p_collection_id, cname);
+	tileset->set_collection_icon(p_collection_id, icon);
+	tileset->set_collection_name(p_collection_id, cname);
 }
 
 void TileSet3DEditor::_set_selected_collection(int p_selected) {
@@ -168,21 +168,21 @@ void TileSet3DEditor::_display_mode_button_pressed(Object *p_button) {
 }
 
 void TileSet3DEditor::edit(const Ref<TileSet3D> &p_set) {
-    if (tile_set == p_set) {
+    if (tileset == p_set) {
         return;
     }
 
-    if (tile_set.is_valid()) {
-        tile_set->disconnect("changed", callable_mp(this, &TileSet3DEditor::_tile_set_changed));
-        tile_set->disconnect("collection_changed", callable_mp(this, &TileSet3DEditor::_collection_changed));
+    if (tileset.is_valid()) {
+        tileset->disconnect("changed", callable_mp(this, &TileSet3DEditor::_tile_set_changed));
+        tileset->disconnect("collection_changed", callable_mp(this, &TileSet3DEditor::_collection_changed));
     }
 
-    tile_set = p_set;
-    collection_editor->set_tile_set(tile_set);
+    tileset = p_set;
+    collection_editor->set_tile_set(tileset);
 
-    if (tile_set.is_valid()) {
-        tile_set->connect("changed", callable_mp(this, &TileSet3DEditor::_tile_set_changed));
-        tile_set->connect("collection_changed", callable_mp(this, &TileSet3DEditor::_collection_changed));
+    if (tileset.is_valid()) {
+        tileset->connect("changed", callable_mp(this, &TileSet3DEditor::_tile_set_changed));
+        tileset->connect("collection_changed", callable_mp(this, &TileSet3DEditor::_collection_changed));
     }
 
     _update_collections_list();

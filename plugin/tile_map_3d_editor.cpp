@@ -215,7 +215,7 @@ void TileMap3DEditor::_tileset_changed() {
     // Wait to make sure tilemap is updated
     //MessageQueue::get_singleton()->push_callable(callable_mp(this, &TileMap3DEditor::_apply_tileset_changed));
     _draw_grid();
-
+    _update_tileset_ui();
 }
 
 void TileMap3DEditor::_apply_tileset_changed() {
@@ -269,6 +269,46 @@ void TileMap3DEditor::edit(TileMap3D *p_tilemap) {
         tilemap->set_transform_gizmo_visible(false);
         set_process(true);
         _update_tileset();
+    }
+}
+
+void TileMap3DEditor::_update_tileset_ui() {
+    int selected = collection_options->get_selected();
+    int ncollections = collection_options->get_item_count();
+    collection_options->clear();
+
+    if (tileset.is_null() || tileset->get_collection_count() == 0) {
+        collection_options->add_item(TTR("(No Collections Found)"), -2); // Id = -1 will make the Id to be 0
+        return;
+    }
+
+    for (int i = 0; i < tileset->get_collection_count(); i++) {
+        int id = tileset->get_collection_id(i);
+        String collection_name = tileset->get_collection_name(id);
+        if (collection_name.is_empty()) {
+            String nm = tileset->get_collection_type(id) == TileSet3DCollection::COLLECTION_TYPE_ATLAS ? TTR("Atlas Collection") : TTR("Scene Collection");
+            collection_name = vformat("[%s]", nm);
+        }
+        String text = vformat("%s (ID: %d)", collection_name, id);
+        Ref<Texture2D> icon = tileset->get_collection_icon(id);
+        collection_options->add_icon_item(icon, collection_name, id);
+    }
+
+    if (collection_options->get_item_count() == ncollections) {
+        collection_options->select(selected);
+    } else {
+        collection_options->select(0);
+    }
+    _collection_selected(collection_options->get_selected());
+}
+
+void TileMap3DEditor::_collection_selected(int p_index) {
+    int cid = collection_options->get_item_id(p_index);
+
+    for (int i = 0; i < tileset->get_collection_tile_count(cid); i++) {
+        int id = tileset->get_collection_tile_id(cid, i);
+        Ref<TileData3D> data = tileset->get_collection_tile(cid, id);
+        tile_list->add_item(data->get_name(), data->get_preview());
     }
 }
 
@@ -486,6 +526,7 @@ TileMap3DEditor::TileMap3DEditor(EditorNode *p_editor) {
     collection_options->set_h_size_flags(SIZE_EXPAND_FILL);
     collection_options->set_auto_translate(false);
     bottom_container->add_child(collection_options);
+    collection_options->connect("item_selected", callable_mp(this, &TileMap3DEditor::_collection_selected));
 
     HBoxContainer *cursors_container = memnew(HBoxContainer);
     cursors_container->set_h_size_flags(SIZE_EXPAND_FILL);

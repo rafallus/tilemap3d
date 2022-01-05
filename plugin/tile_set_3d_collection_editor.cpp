@@ -37,14 +37,14 @@ void TileSet3DCollectionEditor::TileSet3DCollectionProxyObject::edit(Ref<TileSet
     ERR_FAIL_NULL(p_tile_set);
     ERR_FAIL_COND(!p_tile_set->has_collection_id(p_collection_id));
 
-    if (tile_set != p_tile_set) {
-        tile_set = p_tile_set;
+    if (tileset != p_tile_set) {
+        tileset = p_tile_set;
         cid = p_collection_id;
-        cindex = tile_set->get_collection_index(cid);
+        cindex = tileset->get_collection_index(cid);
         notify_property_list_changed();
     } else if (cid != p_collection_id) {
         cid = p_collection_id;
-        cindex = tile_set->get_collection_index(cid);
+        cindex = tileset->get_collection_index(cid);
         notify_property_list_changed();
     }
 }
@@ -55,11 +55,11 @@ void TileSet3DCollectionEditor::TileSet3DCollectionProxyObject::update_collectio
 
 bool TileSet3DCollectionEditor::TileSet3DCollectionProxyObject::_set(const StringName &p_name, const Variant &p_value) {
     if (p_name == "name") {
-        tile_set->set_collection_name(cid, p_value);
+        tileset->set_collection_name(cid, p_value);
         return true;
     } else if (p_name == "id") {
-        tile_set->set_collection_id(cindex, p_value, false);
-        cid = tile_set->get_collection_id(cindex);
+        tileset->set_collection_id(cindex, p_value, false);
+        cid = tileset->get_collection_id(cindex);
         return true;
     }
     return false;
@@ -67,7 +67,7 @@ bool TileSet3DCollectionEditor::TileSet3DCollectionProxyObject::_set(const Strin
 
 bool TileSet3DCollectionEditor::TileSet3DCollectionProxyObject::_get(const StringName &p_name, Variant &r_ret) const {
     if (p_name == "name") {
-        r_ret = tile_set->get_collection_name(cid);
+        r_ret = tileset->get_collection_name(cid);
         return true;
     } else if (p_name == "id") {
         r_ret = cid;
@@ -102,12 +102,12 @@ void TileSet3DCollectionEditor::_add_source_files_selected(const PackedStringArr
     if (file_dialog->is_connected("files_selected", callable_mp(this, &TileSet3DCollectionEditor::_add_source_files_selected))) {
         file_dialog->disconnect("files_selected", callable_mp(this, &TileSet3DCollectionEditor::_add_source_files_selected));
     }
-    Ref<TileSet3DCollection> previous = tile_set->get_collection(cid)->duplicate();
+    Ref<TileSet3DCollection> previous = tileset->get_collection(cid)->duplicate();
     undo_redo->create_action(TTR("Add tiles to collection from files"));
     undo_redo->add_do_method(this, "_add_source_files_from_paths", p_paths, p_method);
-    undo_redo->add_undo_method(*tile_set, "remove_collection", cid);
-    int pos = tile_set->get_collection_index(cid);
-    undo_redo->add_undo_method(*tile_set, "add_collection", previous, cid, pos);
+    undo_redo->add_undo_method(*tileset, "remove_collection", cid);
+    int pos = tileset->get_collection_index(cid);
+    undo_redo->add_undo_method(*tileset, "add_collection", previous, cid, pos);
     undo_redo->add_undo_method(this, "_update_tiles");
     undo_redo->commit_action();
 }
@@ -126,7 +126,7 @@ void TileSet3DCollectionEditor::_add_source_files_from_paths(const PackedStringA
 }
 
 void TileSet3DCollectionEditor::_add_scene_atlas_source(const String &p_path) {
-    ERR_FAIL_COND(tile_set->get_collection_type(cid) != TileSet3DCollection::COLLECTION_TYPE_ATLAS);
+    ERR_FAIL_COND(tileset->get_collection_type(cid) != TileSet3DCollection::COLLECTION_TYPE_ATLAS);
     Ref<PackedScene> scene = ResourceLoader::load(p_path);
     ERR_FAIL_NULL(scene);
     Node3D *root = Object::cast_to<Node3D>(scene->instantiate(PackedScene::GEN_EDIT_STATE_INSTANCE));
@@ -143,7 +143,7 @@ void TileSet3DCollectionEditor::_add_scene_atlas_source(const String &p_path) {
             if (used) {
                 data->set_name(n->get_name());
                 data->set_source(vformat("%s:%s", p_path, n->get_name()));
-                tile_set->add_collection_tile(cid, data);
+                tileset->add_collection_tile(cid, data);
                 Pair<Ref<Mesh>, Transform3D> pair = _get_tile_data_mesh(data);
                 if (pair.first.is_valid()) {
                     meshes.push_back(pair.first);
@@ -248,7 +248,7 @@ Pair<Ref<Mesh>, Transform3D> TileSet3DCollectionEditor::_get_tile_data_mesh(cons
 }
 
 void TileSet3DCollectionEditor::_update_tiles() {
-    int ntiles = tile_set->get_collection_tile_count(cid);
+    int ntiles = tileset->get_collection_tile_count(cid);
     int nitems = tiles_view->get_child_count(false);
     int preview_size = EDITOR_GET("editors/tile_map_3d/tile_sets/preview_size");
     bool needs_fit = tiles_view->get_child_count() == 0;
@@ -266,8 +266,8 @@ void TileSet3DCollectionEditor::_update_tiles() {
 
         ERR_FAIL_NULL(item);
 
-        int id = tile_set->get_collection_tile_id(cid, i);
-        item->set_data(tile_set->get_collection_tile(cid, id));
+        int id = tileset->get_collection_tile_id(cid, i);
+        item->set_data(tileset->get_collection_tile(cid, id));
         item->set_id(id);
     }
 
@@ -326,9 +326,9 @@ Transform3D TileSet3DCollectionEditor::_get_descendant_transform(const Node3D *p
 }
 
 void TileSet3DCollectionEditor::edit(int p_collection_id) {
-    ERR_FAIL_COND(tile_set.is_null());
+    ERR_FAIL_COND(tileset.is_null());
     cid = p_collection_id;
-    collection_proxy->edit(tile_set, cid);
+    collection_proxy->edit(tileset, cid);
 
     if (inspector->get_edited_object() != collection_proxy) {
         inspector->edit(collection_proxy);
@@ -338,14 +338,14 @@ void TileSet3DCollectionEditor::edit(int p_collection_id) {
 }
 
 void TileSet3DCollectionEditor::set_tile_set(const Ref<TileSet3D> &p_set) {
-    if (tile_set.is_valid()) {
-        tile_set->disconnect(SNAME("collection_changed"), callable_mp(this, &TileSet3DCollectionEditor::_collection_changed));
+    if (tileset.is_valid()) {
+        tileset->disconnect(SNAME("collection_changed"), callable_mp(this, &TileSet3DCollectionEditor::_collection_changed));
     }
 
-    tile_set = p_set;
+    tileset = p_set;
 
-    if (tile_set.is_valid()) {
-        tile_set->connect(SNAME("collection_changed"), callable_mp(this, &TileSet3DCollectionEditor::_collection_changed));
+    if (tileset.is_valid()) {
+        tileset->connect(SNAME("collection_changed"), callable_mp(this, &TileSet3DCollectionEditor::_collection_changed));
     }
 }
 
